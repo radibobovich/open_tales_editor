@@ -30,6 +30,14 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
   TextEditingController initialCardCtrl = TextEditingController();
   final initialCardKey = GlobalKey<FormState>();
 
+  TextEditingController customFieldNameCtrl = TextEditingController();
+  final customFieldNameKey = GlobalKey<FormState>();
+
+  TextEditingController customFieldValueCtrl = TextEditingController();
+  final customFieldValueKey = GlobalKey<FormState>();
+
+  String customFieldType = "string";
+  Map<String, dynamic> customFields = {};
   List<String> indicators = [];
   String difficulty = "medium";
   bool noLoses = false;
@@ -183,6 +191,13 @@ class _CreateProjectScreenState extends State<CreateProjectScreen> {
                   )
                 ],
               ),
+              CustomFields(
+                  customFieldNameCtrl: customFieldNameCtrl,
+                  customFieldValueCtrl: customFieldValueCtrl,
+                  fields: customFields,
+                  changeType: (value) {
+                    customFieldType = value;
+                  })
             ],
           ),
         )));
@@ -295,6 +310,108 @@ class _IndicatorsState extends State<Indicators> {
                 title: Text(widget.indicators[index]),
                 onTap: () {
                   widget.indicators.removeAt(index);
+                  setState(() {});
+                },
+              );
+            }),
+      ],
+    );
+  }
+}
+
+class CustomFields extends StatefulWidget {
+  final TextEditingController customFieldNameCtrl;
+  final TextEditingController customFieldValueCtrl;
+  final Map<String, dynamic> fields;
+  final Function changeType;
+  const CustomFields(
+      {super.key,
+      required this.customFieldNameCtrl,
+      required this.customFieldValueCtrl,
+      required this.fields,
+      required this.changeType});
+
+  @override
+  State<CustomFields> createState() => _CustomFieldsState();
+}
+
+class _CustomFieldsState extends State<CustomFields> {
+  String customFieldType = "string";
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                validator: (value) {
+                  return null;
+                },
+                controller: widget.customFieldNameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Field name',
+                ),
+              ),
+            ),
+            DropdownButton<String>(
+              items: const [
+                DropdownMenuItem(value: "string", child: Text("String")),
+                DropdownMenuItem(value: "int", child: Text("int")),
+                DropdownMenuItem(value: "double", child: Text("Double")),
+                DropdownMenuItem(value: "bool", child: Text("Boolean")),
+                DropdownMenuItem(
+                    value: "list<string>", child: Text("List of strings")),
+                DropdownMenuItem(
+                    value: "list<int>", child: Text("List of ints")),
+              ],
+              value: customFieldType,
+              onChanged: (value) {
+                setState(() {
+                  customFieldType = value!;
+                  widget.changeType(value);
+                });
+              },
+            ),
+            Expanded(
+              child: TextFormField(
+                validator: (value) {
+                  return null;
+                },
+                controller: widget.customFieldValueCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Field value',
+                ),
+              ),
+            ),
+            IconButton(
+                onPressed: () {
+                  widget.fields.addAll({
+                    widget.customFieldNameCtrl.text:
+                        widget.customFieldValueCtrl.text
+                  });
+                  setState(() {});
+                },
+                icon: const Icon(Icons.add))
+          ],
+        ),
+        ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: widget.fields.length,
+            itemBuilder: (context, index) {
+              return ListTile(
+                title: Row(
+                  children: [
+                    Text(widget.fields.keys.elementAt(index)),
+                    const Spacer(),
+                    Text(widget.fields.values.elementAt(index))
+                  ],
+                ),
+                onTap: () {
+                  widget.fields.removeWhere((key, value) =>
+                      widget.fields.keys.elementAt(index) == key);
                   setState(() {});
                 },
               );
